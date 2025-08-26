@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="mni">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ꯃꯤꯇꯩ ꯃꯌꯦꯛ Repetitive Word Replacer</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h1>ꯃꯤꯇꯩ ꯃꯌꯦꯛ Repetitive Word Replacer</h1>
+
+    <label>ꯃꯤꯇꯩ ꯃꯌꯦꯛ Text (TXT) ꯑꯌꯥꯟ:</label>
+    <input type="file" id="inputFile" accept=".txt">
+
+    <textarea id="inputText" placeholder="ꯃꯤꯇꯩ ꯃꯌꯦꯛ text paste ꯑꯣꯏ (up to 50,000 words)"></textarea>
+    
+    <input type="text" id="defaultWord" placeholder="Repeated word replace ꯑꯌꯤ default">
+
+    <label>ꯃꯤꯇꯩ ꯃꯌꯦꯛ CSV Dictionary (word,replacement1|replacement2|...):</label>
+    <input type="file" id="dictFile" accept=".csv">
+
+    <textarea id="customDict" placeholder="ꯃꯤꯇꯩ CSV dictionary paste ꯑꯣꯏ"></textarea>
+
+    <div class="buttons">
+        <button onclick="copyOutput()">Copy Output</button>
+        <button onclick="downloadOutput()">Download as TXT</button>
+    </div>
+
+    <h2>Output (highlighted replacements):</h2>
+    <div id="highlightedOutput" class="highlighted"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
