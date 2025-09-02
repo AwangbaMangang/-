@@ -1,0 +1,305 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meetei Mayek Text Replacer — JSON Dictionary</title>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#121a2b; --muted:#8aa0b4; --text:#e8f0ff; --accent:#4cc9f0; --accent2:#00d4a6; --danger:#ff5c7a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans",Ubuntu; background:var(--bg); color:var(--text)}
+    .container{max-width:1100px;margin:0 auto;padding:16px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}
+    h1{font-size:clamp(18px,3.6vw,28px);margin:0;letter-spacing:0.3px}
+    .badge{font-size:12px;padding:4px 8px;border:1px solid #2a3551;border-radius:999px;color:var(--muted)}
+    .panel{background:var(--panel);border:1px solid #1f2a44;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .grid{display:grid;gap:12px}
+    @media (min-width:900px){.grid{grid-template-columns:1fr 1fr}}
+    textarea{width:100%;min-height:280px;resize:vertical;background:#0d1526;color:var(--text);border:1px solid #203152;border-radius:12px;padding:12px;line-height:1.5}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    button,input[type="file"]::file-selector-button{cursor:pointer}
+    button{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#05202a;padding:10px 14px;border-radius:12px;font-weight:700}
+    button.secondary{background:#16243d;color:var(--text);border:1px solid #273a60}
+    button.ghost{background:transparent;border:1px dashed #2b3e64;color:var(--muted)}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .pill{background:#0c1830;border:1px solid #26385e;border-radius:999px;padding:6px 10px;color:var(--muted);font-size:12px}
+    .kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#0c1730;border:1px solid #2a3b64;border-bottom-width:2px;border-radius:8px;padding:3px 6px;color:#b9c9e6}
+    .section{padding:12px}
+    .stack{display:flex;flex-direction:column;gap:10px}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{border:1px solid #23355c;padding:8px;text-align:left}
+    .muted{color:var(--muted)}
+    .small{font-size:12px}
+    .right{margin-left:auto}
+    .progress{height:10px;background:#0d1830;border:1px solid #23355c;border-radius:999px;overflow:hidden}
+    .bar{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+    .sr-only{position:absolute;height:1px;width:1px;overflow:hidden;clip:rect(1px,1px,1px,1px)}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="row" style="gap:10px">
+        <h1>Meetei Mayek Text Replacer</h1>
+        <span class="badge">50k+ words • offline • JSON dictionary</span>
+      </div>
+      <div class="row small muted">
+        <span class="pill">Paste → Replace → Download</span>
+        <span class="pill">Supports custom dictionary (.json)</span>
+      </div>
+    </header><div class="panel section stack">
+  <div class="grid">
+    <div class="stack">
+      <label for="input" class="muted small">Input (Meetei Mayek)</label>
+      <textarea id="input" placeholder="Paste up to ~50,000 words here…"></textarea>
+      <div class="row small muted">
+        <span id="inStats">0 chars</span>
+        <div class="right row">
+          <input type="file" id="uploadText" accept=".txt" class="secondary" />
+          <button class="secondary" id="clearIn">Clear</button>
+        </div>
+      </div>
+    </div>
+    <div class="stack">
+      <label for="output" class="muted small">Output (Replaced)</label>
+      <textarea id="output" placeholder="Your replaced text will appear here…"></textarea>
+      <div class="row small muted">
+        <span id="outStats">0 chars</span>
+        <div class="right row">
+          <button class="secondary" id="copyOut">Copy Output</button>
+          <button id="downloadOut">Download .txt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stack">
+    <div class="controls">
+      <button id="runBtn">Replace Now</button>
+      <button class="secondary" id="previewBtn">Quick Preview (first 5k chars)</button>
+      <button class="ghost" id="resetDict">Reset to Default Dictionary</button>
+      <label class="pill" style="cursor:pointer">Upload Dictionary JSON
+        <input type="file" id="dictUpload" accept="application/json" style="display:none">
+      </label>
+      <button class="secondary" id="exportDict">Export Current Dictionary</button>
+    </div>
+    <div class="row small muted">
+      <label><input type="checkbox" id="wholeWord"> Whole word only</label>
+      <label><input type="checkbox" id="normalizeWS" checked> Normalize whitespace</label>
+      <label><input type="checkbox" id="reportTbl" checked> Show replacement report</label>
+      <span class="right small">Rules: <span id="ruleCount">0</span></span>
+    </div>
+    <div class="progress" aria-hidden="true"><div class="bar" id="bar"></div></div>
+    <div id="report" class="stack"></div>
+  </div>
+</div>
+
+<details class="panel section" style="margin-top:12px">
+  <summary><strong>Dictionary Format</strong> (JSON)</summary>
+  <p class="muted small">Array of objects. <code>mode</code> can be <code>"plain"</code> (default) for exact text match or <code>"regex"</code> for advanced patterns.</p>
+  <pre class="small" style="white-space:pre-wrap;background:#0b1428;border:1px solid #203152;padding:10px;border-radius:10px">[
+
+{ "find": "ꯅꯣꯪ", "replace": "ꯅꯣꯡ" }, { "find": "(ꯍ)\u200d?", "replace": "$1", "mode": "regex" } ]</pre> </details>
+
+<footer class="row muted small" style="justify-content:space-between;margin-top:10px">
+  <div>Made for fast, offline replacements. No data is uploaded.</div>
+  <div>
+    <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> to Replace • <span class="kbd">Ctrl</span> + <span class="kbd">S</span> to Download
+  </div>
+</footer>
+
+  </div>  <!-- Default dictionary embedded as JSON -->  <script id="default-dict" type="application/json">[
+    { "find": "ꯅꯣꯪ", "replace": "ꯅꯣꯡ" },
+    { "find": "ꯑꯣ", "replace": "ꯑꯣ" },
+    { "find": "ꯇꯥꯡꯗ", "replace": "ꯇꯥꯡꯖ" },
+    { "find": "ꯔꯝ", "replace": "ꯔꯣꯝ" },
+    { "find": "ꯑꯁꯤ", "replace": "ꯑꯣꯁꯤ" }
+  ]</script>  <script>
+    // Utility: debounce
+    const debounce=(fn,ms=200)=>{let t;return (...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}}
+
+    // Load dictionary (default or from storage)
+    let dictionary = [];
+    const loadDefaultDict = () => {
+      try{dictionary = JSON.parse(document.getElementById('default-dict').textContent)}catch(e){dictionary=[]}
+      saveDictToStorage();
+      refreshRuleCount();
+    };
+    const saveDictToStorage = ()=> localStorage.setItem('mm-dict', JSON.stringify(dictionary));
+    const loadDictFromStorage = ()=>{const s=localStorage.getItem('mm-dict'); if(s){try{dictionary=JSON.parse(s)}catch{loadDefaultDict()}} else {loadDefaultDict()} refreshRuleCount()};
+
+    const refreshRuleCount = ()=> document.getElementById('ruleCount').textContent = dictionary.length.toString();
+
+    // Text stats
+    const inEl = document.getElementById('input');
+    const outEl = document.getElementById('output');
+    const inStats = document.getElementById('inStats');
+    const outStats = document.getElementById('outStats');
+
+    const updateStats = ()=>{
+      const txt=inEl.value; const words = txt.trim()? txt.trim().split(/\s+/).length : 0;
+      inStats.textContent = `${txt.length} chars • ${words} words`;
+      const ot=outEl.value; const ow = ot.trim()? ot.trim().split(/\s+/).length : 0;
+      outStats.textContent = `${ot.length} chars • ${ow} words`;
+    }
+    inEl.addEventListener('input', debounce(updateStats, 100));
+
+    // Build one-pass regex from dictionary (plain rules only)
+    const escapeRx = s => s.replace(/[.*+?^${}()|[\]\\]/g, r=>`\\${r}`);
+
+    function buildMatcher(wholeWord=false){
+      const plainRules = dictionary.filter(r=>!r.mode || r.mode==='plain');
+      // Sort by length desc to prefer longer matches
+      plainRules.sort((a,b)=> (b.find||'').length - (a.find||'').length);
+      const map = new Map();
+      const parts = [];
+      for(const r of plainRules){
+        if(!r.find) continue;
+        const key = r.find;
+        parts.push(escapeRx(key));
+        map.set(key, r.replace ?? '');
+      }
+      if(parts.length===0){ return null; }
+      const body = parts.join('|');
+      const wb = wholeWord ? '(?<!\uAA00-\uAA5F)(?<!\w)' : '';// Not strictly applied for script, kept simple
+      const we = wholeWord ? '(?!\w)' : '';
+      const rx = new RegExp(body, 'g');
+      return { rx, map };
+    }
+
+    // Apply regex rules (mode==='regex') separately (also one pass per rule)
+    function applyRegexRules(text){
+      const rules = dictionary.filter(r=>r.mode==='regex');
+      for(const r of rules){
+        try{
+          const rx = new RegExp(r.find, 'g');
+          text = text.replace(rx, r.replace ?? '');
+        }catch(e){ console.warn('Bad regex rule', r, e); }
+      }
+      return text;
+    }
+
+    // Replace engine (handles big text efficiently)
+    async function replaceAll(text, {wholeWord=false, normalizeWS=false, progressCb}){
+      // Quick preview uses substring, full run uses entire input.
+      const matcher = buildMatcher(wholeWord);
+      const total = text.length;
+      let done = 0;
+      // First: apply combined plain rules with a single regex and callback
+      if(matcher){
+        text = text.replace(matcher.rx, (m)=>{
+          done += m.length; if(progressCb) progressCb(Math.min(1, done/Math.max(1,total)));
+          // choose replacement for exact key (no grouping used because alternation built from exact literals)
+          const rep = matcher.map.get(m);
+          return (rep!==undefined)? rep : m;
+        });
+      }
+      // Then: regex rules, potentially multiple passes but typically few
+      text = applyRegexRules(text);
+      if(normalizeWS){
+        // collapse multiple spaces and normalize newlines lightly
+        text = text.replace(/[\t\x0B\f\r ]+/g,' ').replace(/ *\n+ */g,'\n');
+      }
+      if(progressCb) progressCb(1);
+      return text;
+    }
+
+    // Progress bar helper
+    const bar = document.getElementById('bar');
+    const setProgress = p => { bar.style.width = `${Math.floor(p*100)}%`; };
+
+    // Report table
+    function buildReportTable(before, after){
+      const changes = [];
+      for(const r of dictionary){
+        if(!r.find) continue;
+        const rx = r.mode==='regex' ? new RegExp(r.find,'g') : new RegExp(escapeRx(r.find),'g');
+        const matches = before.match(rx);
+        if(matches && matches.length){
+          changes.push({ find:r.find, replace:r.replace??'', count:matches.length, mode:r.mode||'plain' });
+        }
+      }
+      changes.sort((a,b)=> b.count-a.count);
+      if(!changes.length){ return '<p class="muted small">No rules matched.</p>'; }
+      let html = '<table class="table small"><thead><tr><th>#</th><th>Find</th><th>Replace</th><th>Mode</th><th>Count</th></tr></thead><tbody>';
+      changes.forEach((c,i)=>{
+        html += `<tr><td>${i+1}</td><td>${c.find}</td><td>${c.replace}</td><td>${c.mode}</td><td>${c.count}</td></tr>`
+      });
+      html += '</tbody></table>';
+      return html;
+    }
+
+    // Wire up buttons
+    document.getElementById('runBtn').addEventListener('click', async ()=>{
+      const text = inEl.value;
+      setProgress(0);
+      const wholeWord = document.getElementById('wholeWord').checked;
+      const normalizeWS = document.getElementById('normalizeWS').checked;
+      const reportWanted = document.getElementById('reportTbl').checked;
+      const before = text;
+      const after = await replaceAll(text,{wholeWord, normalizeWS, progressCb:setProgress});
+      outEl.value = after; updateStats(); setProgress(1);
+      document.getElementById('report').innerHTML = reportWanted? buildReportTable(before, after) : '';
+    });
+
+    document.getElementById('previewBtn').addEventListener('click', async ()=>{
+      const text = inEl.value.slice(0, 5000);
+      setProgress(0);
+      const after = await replaceAll(text,{wholeWord:document.getElementById('wholeWord').checked, normalizeWS:document.getElementById('normalizeWS').checked, progressCb:setProgress});
+      outEl.value = after + (inEl.value.length>5000?'\n… (preview only)':'');
+      updateStats(); setProgress(1);
+      document.getElementById('report').innerHTML = buildReportTable(text, after);
+    });
+
+    document.getElementById('clearIn').addEventListener('click', ()=>{ inEl.value=''; updateStats(); });
+
+    document.getElementById('copyOut').addEventListener('click', async ()=>{
+      await navigator.clipboard.writeText(outEl.value||'');
+      const btn = document.getElementById('copyOut');
+      const prev = btn.textContent; btn.textContent='Copied!'; setTimeout(()=>btn.textContent=prev,1000);
+    });
+
+    document.getElementById('downloadOut').addEventListener('click', ()=>{
+      const blob = new Blob([outEl.value||''], {type:'text/plain;charset=utf-8'});
+      const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='mm-replaced.txt'; a.click(); URL.revokeObjectURL(a.href);
+    });
+
+    // Upload .txt into input
+    document.getElementById('uploadText').addEventListener('change', async (e)=>{
+      const f=e.target.files?.[0]; if(!f) return; const txt = await f.text(); inEl.value = txt; updateStats(); e.target.value='';
+    });
+
+    // Upload JSON dictionary: merge (override duplicates by exact key+mode)
+    document.getElementById('dictUpload').addEventListener('change', async (e)=>{
+      const f = e.target.files?.[0]; if(!f) return; let arr=[]; try{arr=JSON.parse(await f.text())}catch(err){alert('Invalid JSON'); return}
+      if(!Array.isArray(arr)){ alert('Dictionary must be an array of rules'); return }
+      const keyOf = r=> `${r.mode||'plain'}\u0001${r.find}`;
+      const map = new Map(dictionary.map(r=>[keyOf(r), r]));
+      for(const r of arr){ if(!r || !r.find){ continue } map.set(keyOf(r), { find:r.find, replace:r.replace??'', mode:r.mode }); }
+      dictionary = Array.from(map.values());
+      saveDictToStorage(); refreshRuleCount(); e.target.value='';
+      alert('Dictionary merged. Total rules: '+dictionary.length);
+    });
+
+    // Export current dictionary
+    document.getElementById('exportDict').addEventListener('click', ()=>{
+      const blob = new Blob([JSON.stringify(dictionary, null, 2)], {type:'application/json'});
+      const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='mm-dictionary.json'; a.click(); URL.revokeObjectURL(a.href);
+    });
+
+    document.getElementById('resetDict').addEventListener('click', ()=>{ loadDefaultDict(); alert('Reset to default dictionary.'); });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e)=>{
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='enter'){ e.preventDefault(); document.getElementById('runBtn').click(); }
+      if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); document.getElementById('downloadOut').click(); }
+    });
+
+    // Init
+    loadDictFromStorage();
+    updateStats();
+  </script></body>
+</html>
