@@ -1,6 +1,6 @@
 [
   { "find": "ꯅꯣꯪ", "replace": "ꯅꯣꯡ" },
-  { "find": "ꯇꯥꯡꯗ", "replace": "ꯇꯥꯡꯖ" },
-  { "find": "ꯔꯝ", "replace": "ꯔꯣꯝ" },
-  { "find": "ꯑꯁꯤ", "replace": "ꯑꯣꯁꯤ" }
+  { "find": "ꯇꯥꯡꯗ", "replace": "ꯇꯥꯡ" },
+  { "find": "ꯔ꯭ ꯇ", "replace": "ꯔ꯭ꯇ" },
+  { "find": "ꯑꯣꯁꯤ", "replace": "ꯑꯁꯤ" }
 ]
