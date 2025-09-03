@@ -14,35 +14,73 @@
         <span id="lastSync" class="status-dot">Last synced: never</span>
         <button id="themeToggle">🌙</button>
         <button id="contrastToggle">⬜</button>
-        <button id="resetPrefs">♻️</button>
+        <button id="resetPrefs">Reset</button>
       </div>
     </header>
 
-    <main>
-      <section>
-        <label for="input">Input Text</label>
-        <textarea id="input" placeholder="Paste up to ~50,000 words here…"></textarea>
-        <button id="uploadBtn">Upload .txt</button>
-      </section>
+    <div class="panel section stack">
+      <div class="grid">
+        <!-- Input -->
+        <div class="stack">
+          <label for="input" class="muted small">Input (Meetei Mayek)</label>
+          <textarea id="input" placeholder="Paste up to ~50,000 words here…"></textarea>
+          <div class="row small muted">
+            <span id="inStats">0 chars</span>
+            <div class="right row">
+              <input type="file" id="uploadText" accept=".txt" class="secondary" />
+              <button class="secondary" id="clearIn">Clear</button>
+            </div>
+          </div>
 
-      <section>
-        <label for="output">Output</label>
-        <textarea id="output" placeholder="Replaced text will appear here…"></textarea>
-        <button id="copyOut">Copy</button>
-        <button id="downloadOut">Download</button>
-      </section>
+          <!-- Replace + Preview buttons centered -->
+          <div class="row center">
+            <button id="runBtn" class="primary">Replace Now</button>
+            <button id="previewBtn" class="secondary">Quick Preview</button>
+          </div>
+        </div>
 
-      <section class="controls">
-        <button id="runBtn">Replace Now</button>
-        <button id="forceSync">Force Refresh Dictionary</button>
-      </section>
-
-      <div class="progress">
-        <div class="bar" id="bar"></div>
+        <!-- Output -->
+        <div class="stack">
+          <label for="output" class="muted small">Output (Replaced)</label>
+          <textarea id="output" placeholder="Your replaced text will appear here…"></textarea>
+          <div class="row small muted">
+            <span id="outStats">0 chars</span>
+            <div class="right row">
+              <button class="secondary" id="copyOut">Copy Output</button>
+              <button id="downloadOut">Download .txt</button>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div id="report"></div>
-    </main>
+      <!-- Dictionary + controls -->
+      <div class="stack">
+        <div class="controls">
+          <button class="ghost" id="resetDict">Reset to Default Dictionary</button>
+          <label class="pill" style="cursor:pointer">Upload Dictionary JSON
+            <input type="file" id="dictUpload" accept="application/json" style="display:none">
+          </label>
+          <button class="secondary" id="exportDict">Export Current Dictionary</button>
+          <button class="secondary" id="forceSync">🔄 Force Sync</button>
+        </div>
+        <div class="row small muted">
+          <label><input type="checkbox" id="wholeWord"> Whole word only</label>
+          <label><input type="checkbox" id="normalizeWS" checked> Normalize whitespace</label>
+          <label><input type="checkbox" id="reportTbl" checked> Show replacement report</label>
+          <span class="right small">Rules: <span id="ruleCount">0</span></span>
+        </div>
+        <div class="progress"><div class="bar" id="bar"></div></div>
+        <div id="report" class="stack"></div>
+      </div>
+    </div>
+
+    <footer class="row muted small" style="justify-content:space-between;margin-top:10px">
+      <div>Made for fast, offline replacements. No data is uploaded.</div>
+      <div>
+        <span class="kbd">Ctrl</span> + <span class="kbd">Enter</span> to Replace • 
+        <span class="kbd">Ctrl</span> + <span class="kbd">S</span> to Download
+      </div>
+    </footer>
   </div>
 
   <script src="app.js"></script>
