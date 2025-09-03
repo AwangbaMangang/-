@@ -1,113 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Meetei Mayek Text Replacer</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f8f8f8; }
-    textarea { width: 100%; height: 200px; margin-bottom: 10px; padding: 10px; font-size: 14px; }
-    button { margin: 5px; padding: 10px 15px; border: none; border-radius: 6px; background: #007bff; color: #fff; cursor: pointer; }
-    button:hover { background: #0056b3; }
-    #output { background: #fff; height: 200px; overflow-y: auto; }
-    .controls { margin-bottom: 15px; }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h2>Meetei Mayek Text Replacer</h2>
-  <div class="controls">
-    <button onclick="processText()">Replace Text</button>
-    <button onclick="copyOutput()">Copy Output</button>
-    <button onclick="downloadOutput()">Download Output</button>
-    <button onclick="fetchDictionaryFromGitHub(true)">Force Refresh from GitHub</button>
+  <div class="container">
+    <header>
+      <h1>Meetei Mayek Text Replacer</h1>
+      <div class="header-right">
+        <span id="lastSync" class="status-dot">Last synced: never</span>
+        <button id="themeToggle">🌙</button>
+        <button id="contrastToggle">⬜</button>
+        <button id="resetPrefs">♻️</button>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <label for="input">Input Text</label>
+        <textarea id="input" placeholder="Paste up to ~50,000 words here…"></textarea>
+        <button id="uploadBtn">Upload .txt</button>
+      </section>
+
+      <section>
+        <label for="output">Output</label>
+        <textarea id="output" placeholder="Replaced text will appear here…"></textarea>
+        <button id="copyOut">Copy</button>
+        <button id="downloadOut">Download</button>
+      </section>
+
+      <section class="controls">
+        <button id="runBtn">Replace Now</button>
+        <button id="forceSync">Force Refresh Dictionary</button>
+      </section>
+
+      <div class="progress">
+        <div class="bar" id="bar"></div>
+      </div>
+
+      <div id="report"></div>
+    </main>
   </div>
 
-  <h3>Input Text</h3>
-  <textarea id="input"></textarea>
-
-  <h3>Output Text</h3>
-  <textarea id="output" readonly></textarea>
-
-  <script>
-    let dictionary = [];
-
-    function saveDictionary() {
-      localStorage.setItem("dictionary", JSON.stringify(dictionary));
-    }
-
-    function loadDictionary() {
-      const saved = localStorage.getItem("dictionary");
-      if (saved) dictionary = JSON.parse(saved);
-    }
-
-    async function fetchDictionaryFromGitHub(force = false) {
-      const url = "https://raw.githubusercontent.com/username/reponame/main/dictionary.json"; // change to your GitHub raw link
-      try {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("Network error " + res.status);
-        const data = await res.json();
-        dictionary = data;
-        saveDictionary();
-        localStorage.setItem("lastSync", Date.now().toString());
-        if (force) alert("✅ Dictionary refreshed from GitHub");
-      } catch (e) {
-        console.error("Failed to fetch dictionary:", e);
-        if (force) alert("⚠️ Could not fetch dictionary");
-      }
-    }
-
-    async function autoDailySync() {
-      const lastSync = localStorage.getItem("lastSync");
-      const oneDay = 24 * 60 * 60 * 1000;
-      if (!lastSync || Date.now() - parseInt(lastSync) > oneDay) {
-        await fetchDictionaryFromGitHub();
-      }
-    }
-
-    function processText() {
-      let text = document.getElementById("input").value;
-      if (!dictionary.length) return alert("⚠️ No dictionary loaded");
-
-      // Sort plain rules longest-first to avoid partial replacements
-      const plainRules = dictionary.filter(r => r.mode === "plain").sort((a, b) => b.find.length - a.find.length);
-      const regexRules = dictionary.filter(r => r.mode === "regex");
-
-      for (const rule of plainRules) {
-        text = text.split(rule.find).join(rule.replace);
-      }
-
-      for (const rule of regexRules) {
-        try {
-          const re = new RegExp(rule.find, "g");
-          text = text.replace(re, rule.replace);
-        } catch (e) {
-          console.error("Invalid regex rule:", rule.find);
-        }
-      }
-
-      document.getElementById("output").value = text;
-    }
-
-    function copyOutput() {
-      const output = document.getElementById("output");
-      output.select();
-      document.execCommand("copy");
-      alert("✅ Output copied");
-    }
-
-    function downloadOutput() {
-      const blob = new Blob([document.getElementById("output").value], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "output.txt";
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    // Init
-    loadDictionary();
-    autoDailySync();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
