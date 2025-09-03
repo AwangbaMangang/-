@@ -1,0 +1,6 @@
+[
+  { "find": "ꯅꯣꯪ", "replace": "ꯅꯣꯡ" },
+  { "find": "ꯇꯥꯡꯗ", "replace": "ꯇꯥꯡꯖ" },
+  { "find": "ꯔꯝ", "replace": "ꯔꯣꯝ" },
+  { "find": "ꯑꯁꯤ", "replace": "ꯑꯣꯁꯤ" }
+]
